@@ -12,7 +12,8 @@
     "idf.pythonBinPath": "/home/javi/esp4/python_env/idf4.4_py3.10_env/bin/python",
     "idf.toolsPath": "/home/javi/esp4",
     "files.associations": {
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "*.ipp": "c"
     },
     "idf.flashType": "UART"
 }

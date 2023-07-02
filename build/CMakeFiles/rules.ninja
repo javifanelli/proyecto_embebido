@@ -12,6 +12,16 @@
 # =============================================================================
 
 #############################################
+# Rule for compiling ASM files.
+
+rule ASM_COMPILER__proyecto_embebido.2eelf_
+  depfile = $DEP_FILE
+  deps = gcc
+  command = /home/javi/esp4/tools/riscv32-esp-elf/esp-2021r2-patch5-8.4.0/riscv32-esp-elf/bin/riscv32-esp-elf-gcc $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
+  description = Building ASM object $out
+
+
+#############################################
 # Rule for compiling C files.
 
 rule C_COMPILER__proyecto_embebido.2eelf_

@@ -22,10 +22,6 @@
 #include "../components/sntp/sntp_time.h"
 #include "../components/mqtt/mqtt_funcs.c"
 
-static char* IP;
-static char* SSID;
-static char* MAC;
-bool wifi_state=0;
 bool time_sinc_ok = false;
 
 void app_main(void)
@@ -36,22 +32,11 @@ void app_main(void)
 	config_dis ();
 	pant_bienv ();
 	pant_conectando ();
-	/* wifi_init_sta(); */
+    
 	initialize_sntp();
     while (!time_sinc_ok) vTaskDelay(100 * 1);
     obtain_time();
-    IP = get_ip();
-	SSID = get_ssid();
-	MAC = get_mac();
-	if (strlen(IP)==0)
-	{
-		wifi_state = false;
-		pant_nocon();
-	}
-	else{
-		wifi_state = true;
-		pant_conok (SSID, IP, MAC);
-	}
-    /* mqtt_app_start(); */
+	
+    mqtt_app_start();
 	get_temp();
 }

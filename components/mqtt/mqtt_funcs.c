@@ -5,18 +5,21 @@ extern const uint8_t client_key_pem_end[] asm("_binary_client_key_end");
 extern const uint8_t server_cert_pem_start[] asm("_binary_ca_pem_start");
 extern const uint8_t server_cert_pem_end[] asm("_binary_ca_pem_end");
 
-#include "../components/sntp/sntp_time.h"
+#include <string.h>
 #define BROKER_URI "mqtts://192.168.0.70"
 #define seconds 30 // Segundos de delay en actualizar temperatura
 
+/* static const char *TAG = "sensor"; */
 static const char *ID ="1";
 static char MAC[18];
 static int8_t rssi = 0;
 static char buffer_mqtt[150];
-/* static const char *TAG = "sensor"; */
 static esp_mqtt_client_handle_t client;
 static char TOPIC[50];
 bool mqtt_client_connected = false;
+static char* IP;
+static char* SSID;
+bool wifi_state=0;
 
 void build_topic(void) {
     sprintf(TOPIC, "/home/temperatura/data");
@@ -86,10 +89,18 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
 static void mqtt_app_start(void)
 {
-    uint8_t mac[6];
-    esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
-    sprintf(MAC, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    
+    get_mac();
+    IP = get_ip();
+	SSID = get_ssid();
+    if (strlen(IP)==0)
+	{
+		wifi_state = false;
+		pant_nocon();
+	}
+	else{
+		wifi_state = true;
+		pant_conok (SSID, IP, MAC);
+	}
     const esp_mqtt_client_config_t mqtt_cfg = {
         .uri = BROKER_URI,
         .client_cert_pem = (const char *)client_cert_pem_start,
@@ -116,8 +127,7 @@ void mqtt_send_info(void *pvParameter)
     struct tm *timeinfo;
     char temperatura_str[10];
    
-    float temperature, humidity;
-    int temperatura_ent;
+
     while (1) {
         get_temp();
         struct timeval tv;
@@ -141,8 +151,7 @@ void mqtt_send_info(void *pvParameter)
         strcat(buffer_mqtt, formatted_time);
         strcat(buffer_mqtt, "\",\n");
         strcat(buffer_mqtt, "\"valor\": ");
-        temperatura_ent = truncf(temperature);
-        sprintf(temperatura_str, "%d", temperatura_ent);
+        sprintf(temperatura_str, "%d", temperature);
         strcat(buffer_mqtt, temperatura_str);
         strcat(buffer_mqtt, ",\n");
         strcat(buffer_mqtt, "\"MAC\": \"");

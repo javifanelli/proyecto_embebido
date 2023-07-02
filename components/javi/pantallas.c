@@ -50,7 +50,7 @@ void pant_conectando (void)
 	ssd1306_clear_screen(&devd, false);
 	ssd1306_display_text(&devd, 0, "Conectando a la", 15, false);
 	ssd1306_display_text(&devd, 1, "red...", 6, false);
-	wifi_init_sta();
+	wifi_init_sta(); // Conexión a la red Wi-Fi
 	ssd1306_display_text(&devd, 1, "red... OK", 9, false);
 	vTaskDelay(500 / portTICK_PERIOD_MS);
 	ssd1306_display_text(&devd, 2, "Conectando al", 13, false);

@@ -18,11 +18,13 @@ static const char* TAG= "wifi";
 
 static int s_retry_num = 0;
 static char ip[16];
+static char mac_str[18];
+uint8_t mac[6];
 
 void wifi_init_sta(void);
 char* get_ip(void);
 char* get_ssid(void);
-char* get_mac(void);
+void get_mac(void);
 
 static void event_handler(void* arg, esp_event_base_t event_base,
                           int32_t event_id, void* event_data);
@@ -133,11 +135,10 @@ char* get_ssid (void)
     return (EXAMPLE_ESP_WIFI_SSID);
 }
 
-char* get_mac (void)
+void get_mac (void)
 {
-    static char mac_str[18];
-    uint8_t mac[6];
+    
     esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
     sprintf(mac_str, "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    return mac_str;
+    
 }
