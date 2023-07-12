@@ -13,7 +13,18 @@
     "idf.toolsPath": "/home/javi/esp4",
     "files.associations": {
         "*.inc": "cpp",
-        "*.ipp": "c"
+        "*.ipp": "c",
+        "config_dis.h": "c",
+        "ssd1306.h": "c",
+        "mqtt_client.h": "c",
+        "freertos.h": "c",
+        "temp.h": "c",
+        "dht.h": "c",
+        "esp_log.h": "c",
+        "esp_wifi.h": "c",
+        "ets_sys.h": "c",
+        "esp_idf_lib_helpers.h": "c",
+        "font8x8_basic.h": "c"
     },
     "idf.flashType": "UART"
 }

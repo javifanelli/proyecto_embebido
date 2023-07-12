@@ -1,8 +1,5 @@
-#include "ssd1306.h"
-#include "font8x8_basic.h"
-
-#define DELAY_BIENV 7000
-#define DELAY_CON 5000
+#include "../ssd1306/ssd1306.h"
+#include "../ssd1306/font8x8_basic.h"
 
 SSD1306_t devd;
 
@@ -11,7 +8,7 @@ void pant_bienv (void);
 void pant_conex (void);
 void pant_estado (char*, char *, char*);
 void pant_nocon(void);
-void pant_main (char*, char *, char*);
+void pant_main (char*, char *);
 void pant_no_sensor(void);
 
 void config_dis (void)
@@ -44,32 +41,16 @@ void pant_bienv (void)
 	ssd1306_clear_screen(&devd, false);
 }
 
-void pant_conectando (void)
-{	
-	//PANTALLA DE CONEXION
-	ssd1306_clear_screen(&devd, false);
-	ssd1306_display_text(&devd, 0, "Conectando a la", 15, false);
-	ssd1306_display_text(&devd, 1, "red...", 6, false);
-	wifi_init_sta(); // Conexión a la red Wi-Fi
-	ssd1306_display_text(&devd, 1, "red... OK", 9, false);
-	vTaskDelay(500 / portTICK_PERIOD_MS);
-	ssd1306_display_text(&devd, 2, "Conectando al", 13, false);
-	ssd1306_display_text(&devd, 3, "servidor...", 11, false);
-	vTaskDelay(1000 / portTICK_PERIOD_MS);
-}
-
 void pant_conok (char* ssid, char* ip_add, char* mac_add)
 {
 	ssd1306_clear_screen(&devd, false);
 	vTaskDelay(100 / portTICK_PERIOD_MS);
-	ssd1306_display_text(&devd, 0, "Estado:", 7, false);
-	ssd1306_display_text(&devd, 1, "Conectado", 9, true);
-	ssd1306_display_text(&devd, 2, "SSID:", 5, false);
-	ssd1306_display_text(&devd, 3, ssid, strlen(ssid), true);
-	ssd1306_display_text(&devd, 4, "IP address:", 11, false);
-	ssd1306_display_text(&devd, 5, ip_add, strlen(ip_add), true);
-	ssd1306_display_text(&devd, 6, "MAC address:", 12, false);
-	ssd1306_display_text(&devd, 7, mac_add, strlen(mac_add), true);
+	ssd1306_display_text(&devd, 0, "Red... OK", 9, true);
+	ssd1306_display_text(&devd, 1, "Server... OK", 12, true);
+	ssd1306_display_text(&devd, 2, "IP address:", 11, false);
+	ssd1306_display_text(&devd, 3, IPSTR, strlen(IPSTR), true);
+	ssd1306_display_text(&devd, 4, "MAC address:", 12, false);
+	ssd1306_display_text(&devd, 5, mac_add, strlen(mac_add), true);
 	vTaskDelay(DELAY_CON / portTICK_PERIOD_MS);
 }
 
@@ -93,12 +74,15 @@ void pant_nocon(void)
 	ssd1306_clear_screen(&devd, false);
 }
 
-void pant_main(char* humedad, char* temperatura, char* rssi)
+void pant_main(char* humedad, char* temperatura)
 {
-    ssd1306_display_text(&devd, 0, "Conectado", 9, false);
+    ssd1306_display_text(&devd, 0, "Hora", 4, false);
     ssd1306_display_text_with_value(&devd, 1, "Temperatura: ", 13, temperatura, strlen(temperatura), false);
     ssd1306_display_text_with_value(&devd, 2, "Humedad %: ", 11, humedad, strlen(humedad), false);
-	ssd1306_display_text_with_value(&devd, 3, "RSSI: ", 7, rssi, strlen(rssi), false);
+	ssd1306_display_text(&devd, 3, "Set point: ", 11, false);
+	ssd1306_display_text(&devd, 4, "Salida: ", 8, false);
+	ssd1306_display_text(&devd, 7, "Menu", 4, true);
+
 }
 
 void pant_no_sensor(void)

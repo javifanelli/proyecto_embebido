@@ -1,5 +1,5 @@
 idf_component_register(SRCS "main.c"
-"../components/esp-idf-lib-master/dht/dht.c"
-"../components/esp-idf-lib-master/dht/dht.h"
-"../components/sntp/sntp_time.c"
+                            "../components/esp-idf-lib-master/components/dht/dht.c"
+                            "../components/javi/sntp_time.c"
+                            
                     INCLUDE_DIRS ".")

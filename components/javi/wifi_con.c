@@ -1,9 +1,6 @@
 /* 
     Set SSID, Password, retries allowed.
 */
-#define EXAMPLE_ESP_WIFI_SSID      "JaviRomi_Wifi"
-#define EXAMPLE_ESP_WIFI_PASS      "SanLorenzo4781"
-#define EXAMPLE_ESP_MAXIMUM_RETRY  10
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
@@ -14,17 +11,15 @@ static EventGroupHandle_t s_wifi_event_group;
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
 
-static const char* TAG= "wifi";
+#define TAG "Proyecto"
 
 static int s_retry_num = 0;
 static char ip[16];
-static char mac_str[18];
-uint8_t mac[6];
+bool net_con = false;
 
 void wifi_init_sta(void);
-char* get_ip(void);
 char* get_ssid(void);
-void get_mac(void);
+char* get_mac(void);
 
 static void event_handler(void* arg, esp_event_base_t event_base,
                           int32_t event_id, void* event_data);
@@ -55,6 +50,8 @@ static void event_handler(void* arg, esp_event_base_t event_base,
 
 void wifi_init_sta(void)
 {
+    ssd1306_display_text(&devd, 0, "Conectando", 10, false);
+    ssd1306_display_text(&devd, 1, "a la red...", 11, false);
     s_wifi_event_group = xEventGroupCreate();
 
     ESP_ERROR_CHECK(esp_netif_init());
@@ -110,11 +107,11 @@ void wifi_init_sta(void)
     /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
      * happened. */
     if (bits & WIFI_CONNECTED_BIT) {
-        ESP_LOGI(TAG, "connected to ap SSID:%s",
-                 EXAMPLE_ESP_WIFI_SSID);
+        ESP_LOGI(TAG, "connected to ap SSID:%s", EXAMPLE_ESP_WIFI_SSID);
+        ssd1306_display_text(&devd, 1, "a la red... OK", 14, false);
+        net_con=true;
     } else if (bits & WIFI_FAIL_BIT) {
-        ESP_LOGI(TAG, "Failed to connect to SSID:%s",
-                 EXAMPLE_ESP_WIFI_SSID);
+        ESP_LOGI(TAG, "Failed to connect to SSID:%s", EXAMPLE_ESP_WIFI_SSID);
     } else {
         ESP_LOGE(TAG, "UNEXPECTED EVENT");
     }
@@ -125,20 +122,11 @@ void wifi_init_sta(void)
     vEventGroupDelete(s_wifi_event_group);
 }
 
-char* get_ip (void)
+char* get_mac (void)
 {
-    return (ip);
-}
-
-char* get_ssid (void)
-{
-    return (EXAMPLE_ESP_WIFI_SSID);
-}
-
-void get_mac (void)
-{
-    
+    static char mac_str[18];
+    uint8_t mac[6];
     esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
     sprintf(mac_str, "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    
+    return mac_str;
 }
