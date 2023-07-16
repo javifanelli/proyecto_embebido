@@ -14,12 +14,8 @@ static EventGroupHandle_t s_wifi_event_group;
 #define TAG "Proyecto"
 
 static int s_retry_num = 0;
-static char ip[16];
-bool net_con = false;
 
 void wifi_init_sta(void);
-char* get_ssid(void);
-char* get_mac(void);
 
 static void event_handler(void* arg, esp_event_base_t event_base,
                           int32_t event_id, void* event_data);
@@ -44,12 +40,13 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
         sprintf(ip, IPSTR, IP2STR(&event->ip_info.ip));
+        sprintf(gw, IPSTR, IP2STR(&event->ip_info.gw));
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
     }
 }
 
 void wifi_init_sta(void)
-{
+{   
     ssd1306_display_text(&devd, 0, "Conectando", 10, false);
     ssd1306_display_text(&devd, 1, "a la red...", 11, false);
     s_wifi_event_group = xEventGroupCreate();
@@ -120,13 +117,12 @@ void wifi_init_sta(void)
     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
     vEventGroupDelete(s_wifi_event_group);
-}
-
-char* get_mac (void)
-{
-    static char mac_str[18];
-    uint8_t mac[6];
     esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
-    sprintf(mac_str, "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    return mac_str;
+    sprintf(mac_short, "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    RSSI_CHAR[0] = 0;
+    esp_wifi_sta_get_ap_info(&ap_info);
+    rssi = ap_info.rssi;
+    sprintf(RSSI_CHAR, "%d", rssi);
+    ssd1306_display_text(&devd, 2, "Iniciando el", 12, false);
+    ssd1306_display_text(&devd, 3, "sistema...", 10, false);
 }

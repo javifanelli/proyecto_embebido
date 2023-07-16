@@ -1,27 +1,12 @@
-extern const uint8_t client_cert_pem_start[] asm("_binary_client_pem_start");
-extern const uint8_t client_cert_pem_end[] asm("_binary_client_pem_end");
-extern const uint8_t client_key_pem_start[] asm("_binary_client_key_start");
-extern const uint8_t client_key_pem_end[] asm("_binary_client_key_end");
-extern const uint8_t server_cert_pem_start[] asm("_binary_ca_pem_start");
-extern const uint8_t server_cert_pem_end[] asm("_binary_ca_pem_end");
-
 #include "sntp_time.h"
-#define BROKER_URI "mqtts://192.168.0.70"
-#define seconds 30 // Segundos de delay en actualizar temperatura
+
 #define TAG "sensor"
 
 static const char *ID ="1";
-static char MAC[18];
-static int8_t rssi = 0;
+
 static char buffer_mqtt[150];
 /* static const char *TAG = "sensor"; */
 static esp_mqtt_client_handle_t client;
-static char TOPIC[50];
-bool mqtt_client_connected = false;
-
-void build_topic(void) {
-    sprintf(TOPIC, "/home/temperatura/data");
-}
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {
@@ -32,8 +17,6 @@ static void log_error_if_nonzero(const char *message, int error_code)
 
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
-    
-    build_topic();
     ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
     esp_mqtt_event_handle_t event = event_data;
     /* esp_mqtt_client_handle_t  */client = event->client;
@@ -41,14 +24,16 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
-        mqtt_client_connected = true;
+        mqtt_state = true;
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         msg_id = esp_mqtt_client_subscribe(client, TOPIC, 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+        ssd1306_clear_screen(&devd, false);
         break;
 
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+        mqtt_state = false;
         break;
     
     case MQTT_EVENT_SUBSCRIBED:
@@ -87,9 +72,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
 static void mqtt_app_start(void)
 {
-    ssd1306_display_text(&devd, 2, "Conectando", 10, false);
-    ssd1306_display_text(&devd, 3, "al server...", 12, false);
-    
+    esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
+    sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
     const esp_mqtt_client_config_t mqtt_cfg = {
         .uri = BROKER_URI,
         .client_cert_pem = (const char *)client_cert_pem_start,
@@ -104,48 +89,32 @@ static void mqtt_app_start(void)
     esp_mqtt_client_start(client);
 }
 
-void mqtt_send_info(void *pvParameter)
+void mqtt_send_info(void)
 {
-    wifi_ap_record_t ap_info;
     buffer_mqtt[0] = 0;
-    char RSSI_CHAR[10];
     RSSI_CHAR[0] = 0;
     esp_wifi_sta_get_ap_info(&ap_info);
-    int secs = 0;
-    char ch_secs[4];
-    struct tm *timeinfo;
-    char temperatura_str[10];
-    int temperature, humidity;
-    while (1) {
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        settimeofday(&tv, NULL);
-        time_t now = tv.tv_sec;
-        timeinfo = localtime(&now);
-        strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M:%S", timeinfo);
-        memset(buffer_mqtt, 0, sizeof(buffer_mqtt));
-        sprintf(ch_secs, "%02d", secs);
-        rssi = ap_info.rssi;
-        sprintf(RSSI_CHAR, "%d", rssi);
-        ESP_LOGI(TAG, "RSSI: %d ", ap_info.rssi);
-        strcat(buffer_mqtt, "{\n\"ID\": ");
-        strcat(buffer_mqtt, ID);
-        strcat(buffer_mqtt, ",\n");
-        strcat(buffer_mqtt, "\"RSSI\": ");
-        strcat(buffer_mqtt, RSSI_CHAR);
-        strcat(buffer_mqtt, ",\n");
-        strcat(buffer_mqtt, "\"time\": \"");
-        strcat(buffer_mqtt, formatted_time);
-        strcat(buffer_mqtt, "\",\n");
-        strcat(buffer_mqtt, "\"valor\": ");
-        strcat(buffer_mqtt, temperatura_str);
-        strcat(buffer_mqtt, ",\n");
-        strcat(buffer_mqtt, "\"MAC\": \"");
-        strcat(buffer_mqtt, MAC);
-        strcat(buffer_mqtt, "\"\n}");
-        esp_mqtt_client_publish(client, TOPIC, buffer_mqtt, 0, 0, 0);
-        /* vTaskDelay(1000 * seconds / portTICK_PERIOD_MS); */
-
-    }
-    vTaskDelete(NULL);
+    /* time_t now = time(NULL);
+    timeinfo = localtime(&now);
+    strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M:%S", timeinfo); */
+    memset(buffer_mqtt, 0, sizeof(buffer_mqtt));
+    rssi = ap_info.rssi;
+    sprintf(RSSI_CHAR, "%d", rssi);
+    ESP_LOGI(TAG, "RSSI: %d ", ap_info.rssi);
+    strcat(buffer_mqtt, "{\n\"ID\": ");
+    strcat(buffer_mqtt, ID);
+    strcat(buffer_mqtt, ",\n");
+    strcat(buffer_mqtt, "\"RSSI\": ");
+    strcat(buffer_mqtt, RSSI_CHAR);
+    strcat(buffer_mqtt, ",\n");
+    strcat(buffer_mqtt, "\"time\": \"");
+    strcat(buffer_mqtt, formatted_time);
+    strcat(buffer_mqtt, "\",\n");
+    strcat(buffer_mqtt, "\"valor\": ");
+    strcat(buffer_mqtt, temp_char);
+    strcat(buffer_mqtt, ",\n");
+    strcat(buffer_mqtt, "\"MAC\": \"");
+    strcat(buffer_mqtt, mac_str);
+    strcat(buffer_mqtt, "\"\n}");
+    esp_mqtt_client_publish(client, TOPIC, buffer_mqtt, 0, 0, 0);
 }

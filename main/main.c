@@ -23,15 +23,12 @@
 #include "../components/javi/variables.h"
 #include "../components/esp-idf-lib-master/components/dht/dht.h"
 #include "../components/javi/pantallas.c"
-#include "../components/javi/wifi_con.c"
 #include "../components/javi/sntp_time.h"
+#include "../components/javi/wifi_con.c"
 #include "../components/javi/mqtt_funcs.c"
 #include "../components/temp/temp.h"
-bool time_sinc_ok = false;
 
-/*static char* SSID;
-static char* MAC;
-bool wifi_state=0; */
+bool time_sinc_ok = false;
 
 void app_main(void)
 {
@@ -39,24 +36,15 @@ void app_main(void)
 	ESP_ERROR_CHECK(esp_netif_init());
 	
 	config_dis ();
-	pant_bienv ();
+	/* pant_bienv (); */
 
 	wifi_init_sta();
     initialize_sntp();
     while (!time_sinc_ok) vTaskDelay(100 * 1);
     obtain_time();
-    /* mqtt_app_start(); */
-	
-    /*
-	if (strlen(IP)==0)
-	{
-		wifi_state = false;
-		pant_nocon();
-	}
-	else{
-		wifi_state = true;
-		pant_conok (SSID, IP, MAC);
-	} */
+    mqtt_app_start();
+	pant_conok();
 
-	get_temp();
+	xTaskCreate(get_temp, "get_temp", 4096 * 8, NULL, 5, NULL);
+
 }

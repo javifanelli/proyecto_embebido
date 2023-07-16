@@ -24,7 +24,9 @@
         "esp_wifi.h": "c",
         "ets_sys.h": "c",
         "esp_idf_lib_helpers.h": "c",
-        "font8x8_basic.h": "c"
+        "font8x8_basic.h": "c",
+        "sntp_time.h": "c"
     },
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "idf.port": "/dev/ttyUSB0"
 }
