@@ -1,11 +1,19 @@
+// Certificados usados para la conexión segura con el broker
+extern const uint8_t client_cert_pem_start[] asm("_binary_client_pem_start");
+extern const uint8_t client_cert_pem_end[] asm("_binary_client_pem_end");
+extern const uint8_t client_key_pem_start[] asm("_binary_client_key_start");
+extern const uint8_t client_key_pem_end[] asm("_binary_client_key_end");
+extern const uint8_t server_cert_pem_start[] asm("_binary_ca_pem_start");
+extern const uint8_t server_cert_pem_end[] asm("_binary_ca_pem_end");
+
 #include "sntp_time.h"
 
+#define BROKER_URI "mqtts://192.168.0.70" // IP del broker (Raspberry Pi)
 #define TAG "sensor"
 
 static const char *ID ="1";
-
-static char buffer_mqtt[150];
-/* static const char *TAG = "sensor"; */
+static char *buffer_mqtt;
+static char TOPIC[50]="/home/temperatura/data"; // Topic de MQTT
 static esp_mqtt_client_handle_t client;
 
 static void log_error_if_nonzero(const char *message, int error_code)
@@ -52,7 +60,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
         printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
         printf("DATA=%.*s\r\n", event->data_len, event->data);
-        /* buffer_in = event->data; */
+        buffer_mqtt = event->data;
         break;
     
     case MQTT_EVENT_ERROR:
@@ -89,32 +97,31 @@ static void mqtt_app_start(void)
     esp_mqtt_client_start(client);
 }
 
+#include <cJSON.h>
+
 void mqtt_send_info(void)
 {
-    buffer_mqtt[0] = 0;
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON_AddStringToObject(root, "ID", ID);
+
     RSSI_CHAR[0] = 0;
     esp_wifi_sta_get_ap_info(&ap_info);
-    /* time_t now = time(NULL);
-    timeinfo = localtime(&now);
-    strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M:%S", timeinfo); */
-    memset(buffer_mqtt, 0, sizeof(buffer_mqtt));
     rssi = ap_info.rssi;
     sprintf(RSSI_CHAR, "%d", rssi);
     ESP_LOGI(TAG, "RSSI: %d ", ap_info.rssi);
-    strcat(buffer_mqtt, "{\n\"ID\": ");
-    strcat(buffer_mqtt, ID);
-    strcat(buffer_mqtt, ",\n");
-    strcat(buffer_mqtt, "\"RSSI\": ");
-    strcat(buffer_mqtt, RSSI_CHAR);
-    strcat(buffer_mqtt, ",\n");
-    strcat(buffer_mqtt, "\"time\": \"");
-    strcat(buffer_mqtt, formatted_time);
-    strcat(buffer_mqtt, "\",\n");
-    strcat(buffer_mqtt, "\"valor\": ");
-    strcat(buffer_mqtt, temp_char);
-    strcat(buffer_mqtt, ",\n");
-    strcat(buffer_mqtt, "\"MAC\": \"");
-    strcat(buffer_mqtt, mac_str);
-    strcat(buffer_mqtt, "\"\n}");
-    esp_mqtt_client_publish(client, TOPIC, buffer_mqtt, 0, 0, 0);
+    cJSON_AddStringToObject(root, "RSSI", RSSI_CHAR);
+
+    strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M:%S", timeinfo);
+    cJSON_AddStringToObject(root, "time", formatted_time);
+
+    cJSON_AddStringToObject(root, "valor", temp_char);
+
+    cJSON_AddStringToObject(root, "MAC", mac_str);
+
+    char *json_string = cJSON_PrintUnformatted(root);
+    esp_mqtt_client_publish(client, TOPIC, json_string, 0, 0, 0);
+
+    free(json_string);
+    cJSON_Delete(root);
 }

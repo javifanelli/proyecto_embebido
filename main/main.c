@@ -20,6 +20,7 @@
 #include "lwip/sys.h"
 #include "esp_log.h"
 #include "mqtt_client.h"
+#include "cJSON.h"
 #include "../components/javi/variables.h"
 #include "../components/esp-idf-lib-master/components/dht/dht.h"
 #include "../components/javi/pantallas.c"
@@ -27,8 +28,7 @@
 #include "../components/javi/wifi_con.c"
 #include "../components/javi/mqtt_funcs.c"
 #include "../components/temp/temp.h"
-
-bool time_sinc_ok = false;
+#include "../components/esp-idf-lib-master/components/encoder/encoder.h"
 
 void app_main(void)
 {
@@ -38,10 +38,9 @@ void app_main(void)
 	config_dis ();
 	/* pant_bienv (); */
 
+	pant_inicio ();
 	wifi_init_sta();
-    initialize_sntp();
-    while (!time_sinc_ok) vTaskDelay(100 * 1);
-    obtain_time();
+
     mqtt_app_start();
 	pant_conok();
 

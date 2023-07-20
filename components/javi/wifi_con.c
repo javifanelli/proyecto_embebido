@@ -1,6 +1,9 @@
 /* 
     Set SSID, Password, retries allowed.
 */
+#define EXAMPLE_ESP_WIFI_SSID "JaviRomi_Wifi" // Red local
+#define EXAMPLE_ESP_WIFI_PASS "SanLorenzo4781" // Wifi pass
+#define EXAMPLE_ESP_MAXIMUM_RETRY 10
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
@@ -35,6 +38,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         }
         ESP_LOGI(TAG,"connect to the AP fail");
         strcpy (ip, "");
+
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
@@ -47,8 +51,8 @@ static void event_handler(void* arg, esp_event_base_t event_base,
 
 void wifi_init_sta(void)
 {   
-    ssd1306_display_text(&devd, 0, "Conectando", 10, false);
-    ssd1306_display_text(&devd, 1, "a la red...", 11, false);
+    ssd1306_display_text(&devd, 2, "Conectando", 10, false);
+    ssd1306_display_text(&devd, 3, "a la red...", 11, false);
     s_wifi_event_group = xEventGroupCreate();
 
     ESP_ERROR_CHECK(esp_netif_init());
@@ -105,10 +109,13 @@ void wifi_init_sta(void)
      * happened. */
     if (bits & WIFI_CONNECTED_BIT) {
         ESP_LOGI(TAG, "connected to ap SSID:%s", EXAMPLE_ESP_WIFI_SSID);
-        ssd1306_display_text(&devd, 1, "a la red... OK", 14, false);
-        net_con=true;
+        ssd1306_display_text(&devd, 3, "a la red... OK", 14, false);
+        
+        initialize_sntp();
+        
     } else if (bits & WIFI_FAIL_BIT) {
         ESP_LOGI(TAG, "Failed to connect to SSID:%s", EXAMPLE_ESP_WIFI_SSID);
+        ssd1306_display_text(&devd, 3, "a la red... ERR", 15, false);
     } else {
         ESP_LOGE(TAG, "UNEXPECTED EVENT");
     }
@@ -123,6 +130,5 @@ void wifi_init_sta(void)
     esp_wifi_sta_get_ap_info(&ap_info);
     rssi = ap_info.rssi;
     sprintf(RSSI_CHAR, "%d", rssi);
-    ssd1306_display_text(&devd, 2, "Iniciando el", 12, false);
-    ssd1306_display_text(&devd, 3, "sistema...", 10, false);
+
 }

@@ -40,6 +40,10 @@
 #include <freertos/semphr.h>
 #include <esp_timer.h>
 
+#define CONFIG_RE_MAX 1 // Cantidad máxima de encoders, en este caso uno solo
+#define CONFIG_RE_BTN_DEAD_TIME_US 10000 // Tiempo del antirrebote en useg
+#define CONFIG_RE_INTERVAL_US 7500 // Frecuencia de lectura del encoder en useg
+#define CONFIG_RE_BTN_LONG_PRESS_TIME_US 3000000 // Valor en useg para que se considere el botón apretado por mucho tiempo
 #define MUTEX_TIMEOUT 10
 
 #ifdef CONFIG_RE_BTN_PRESSED_LEVEL_0
@@ -53,6 +57,11 @@ static rotary_encoder_t *encs[CONFIG_RE_MAX] = { 0 };
 static const int8_t valid_states[] = { 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0 };
 static SemaphoreHandle_t mutex;
 static QueueHandle_t _queue;
+rotary_encoder_t control = {
+    .pin_a = 7,       // Número del GPIO al que está conectado el pin "A" del encoder
+    .pin_b = 8,       // Número del GPIO al que está conectado el pin "B" del encoder
+    .pin_btn = 9,     // Número del GPIO al que está conectado el botón del encoder (opcional)
+};
 
 #define GPIO_BIT(x) ((x) < 32 ? BIT(x) : ((uint64_t)(((uint64_t)1)<<(x))))
 #define CHECK(x) do { esp_err_t __; if ((__ = x) != ESP_OK) return __; } while (0)
