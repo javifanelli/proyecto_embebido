@@ -97,8 +97,6 @@ static void mqtt_app_start(void)
     esp_mqtt_client_start(client);
 }
 
-#include <cJSON.h>
-
 void mqtt_send_info(void)
 {
     cJSON *root = cJSON_CreateObject();
@@ -110,7 +108,7 @@ void mqtt_send_info(void)
     rssi = ap_info.rssi;
     sprintf(RSSI_CHAR, "%d", rssi);
     ESP_LOGI(TAG, "RSSI: %d ", ap_info.rssi);
-    cJSON_AddStringToObject(root, "RSSI", RSSI_CHAR);
+    cJSON_AddStringToObject(root, "RSSI", hum_char);
 
     strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M:%S", timeinfo);
     cJSON_AddStringToObject(root, "time", formatted_time);

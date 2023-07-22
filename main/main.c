@@ -22,28 +22,38 @@
 #include "mqtt_client.h"
 #include "cJSON.h"
 #include "../components/javi/variables.h"
+#include "../components/esp-idf-lib-master/components/encoder/encoder.h"
+#include "../components/javi/init.h"
 #include "../components/esp-idf-lib-master/components/dht/dht.h"
 #include "../components/javi/pantallas.c"
 #include "../components/javi/sntp_time.h"
 #include "../components/javi/wifi_con.c"
 #include "../components/javi/mqtt_funcs.c"
 #include "../components/temp/temp.h"
-#include "../components/esp-idf-lib-master/components/encoder/encoder.h"
 
 void app_main(void)
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
+    TickType_t last_wake_time = xTaskGetTickCount();
+	ESP_ERROR_CHECK(nvs_flash_init());
 	ESP_ERROR_CHECK(esp_netif_init());
 	
 	config_dis ();
 	/* pant_bienv (); */
-
+	
 	pant_inicio ();
 	wifi_init_sta();
-
     mqtt_app_start();
-	pant_conok();
-
+	rotary_encoder_init(&control);
+	ssd1306_clear_screen(&devd, false);
+	if (net_con==true){
+		pant_conok();
+	}
+	else{
+		pant_nocon();
+	}
+	vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(5000));
+	ssd1306_clear_screen(&devd, false);
+	rotary_encoder_add(&control);
 	xTaskCreate(get_temp, "get_temp", 4096 * 8, NULL, 5, NULL);
 
 }

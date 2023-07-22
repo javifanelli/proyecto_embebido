@@ -16,7 +16,6 @@ SSD1306_t devd;
 void config_dis (void);
 void pant_bienv (void);
 void pant_inicio (void);
-void pant_estado (char*, char *);
 void pant_nocon(void);
 void pant_main ();
 void pant_no_sensor(void);
@@ -55,7 +54,6 @@ void pant_inicio ()
 {
 	ssd1306_display_text(&devd, 0, "Iniciando el", 12, false);
     ssd1306_display_text(&devd, 1, "sistema...", 10, false);
-	vTaskDelay(DELAY_BIENV / portTICK_PERIOD_MS);
 }
 void pant_conok ()
 {
@@ -68,28 +66,20 @@ void pant_conok ()
 	ssd1306_display_text(&devd, 4, "Gateway IP:", 11, false);
 	ssd1306_display_text(&devd, 5, gw, strlen(gw), true);
 	ssd1306_display_text_with_value(&devd, 6, "Pot senal: ", 11, RSSI_CHAR, strlen(RSSI_CHAR), false);
-	vTaskDelay(DELAY_CON / portTICK_PERIOD_MS);
-	ssd1306_clear_screen(&devd, false);
 }
 
 void pant_nocon(void)
 {
 	ssd1306_clear_screen(&devd, false);
 	vTaskDelay(100 / portTICK_PERIOD_MS);
-	ssd1306_display_text(&devd, 0, "Estado:", 7, false);
-	ssd1306_display_text(&devd, 1, "Sin conexion", 14, true);
-	ssd1306_display_text(&devd, 2, "SSID:", 5, false);
-	ssd1306_display_text(&devd, 3, "--------", 8, true);
-	ssd1306_display_text(&devd, 4, "IP address:", 11, false);
-	ssd1306_display_text(&devd, 5, "--------", 8, true);
-	ssd1306_display_text(&devd, 6, "MAC address:", 12, false);
-	ssd1306_display_text(&devd, 7, "--------", 8, true);
-	vTaskDelay(5000 / portTICK_PERIOD_MS);
-	ssd1306_clear_screen(&devd, false);
-	ssd1306_display_text(&devd, 0, "Error conexion", 14, true);
-	ssd1306_display_text(&devd, 1, "Revisa la", 9, true);
-	ssd1306_display_text(&devd, 2, "configuracion", 13, true);
-	ssd1306_clear_screen(&devd, false);
+	ssd1306_display_text(&devd, 0, "IP address:", 11, false);
+	ssd1306_display_text(&devd, 1, "---.---.---.---", 15, true);
+	ssd1306_display_text(&devd, 2, "MAC address:", 12, false);
+	ssd1306_display_text(&devd, 3, "XXXXXXXX", 8,true);
+	ssd1306_display_text(&devd, 4, "Gateway IP:", 11, false);
+	ssd1306_display_text(&devd, 5, "---.---.---.---", 15, true);
+	ssd1306_display_text(&devd, 6, "Pot senal: XX", 11, false);
+	ssd1306_display_text(&devd, 7, "Error conexion", 14, false);
 }
 
 void pant_main()
@@ -108,7 +98,6 @@ void pant_main()
 	}
 	else if (net_con == false) {
 		ssd1306_display_text(&devd, 4, "Red: ERROR", 10, false);
-		esp_wifi_connect();
 	}
 	if (mqtt_state == true){
 		ssd1306_display_text(&devd, 5, "Server: ONLINE ", 15, false);
@@ -117,6 +106,10 @@ void pant_main()
 		ssd1306_display_text(&devd, 5, "Server: OFFLINE", 15, false);
 	}
 	ssd1306_display_text(&devd, 7, "Menu", 4, true);
+	if (btn_enc){
+		pant_conok();
+		btn_enc=false;
+	}
 }
 
 void pant_no_sensor(void)
