@@ -99,23 +99,28 @@ static void mqtt_app_start(void)
 
 void mqtt_send_info(void)
 {
+    char out_char[10];
+    memset(out_char, 0, sizeof(out_char));
     cJSON *root = cJSON_CreateObject();
 
     cJSON_AddStringToObject(root, "ID", ID);
-
-    RSSI_CHAR[0] = 0;
-    esp_wifi_sta_get_ap_info(&ap_info);
-    rssi = ap_info.rssi;
-    sprintf(RSSI_CHAR, "%d", rssi);
-    ESP_LOGI(TAG, "RSSI: %d ", ap_info.rssi);
-    cJSON_AddStringToObject(root, "RSSI", hum_char);
-
+    cJSON_AddStringToObject(root, "tipo", tipo_disp);
     strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M:%S", timeinfo);
     cJSON_AddStringToObject(root, "time", formatted_time);
-
     cJSON_AddStringToObject(root, "valor", temp_char);
+    if (strcmp(tipo_disp, "Temperatura") == 0) {
+        if (out_temp == false) {
+            sprintf(out_char, "0");
+        }
+        else {
+            sprintf(out_char, "100");
+        }
+    }
 
-    cJSON_AddStringToObject(root, "MAC", mac_str);
+    if (strcmp(tipo_disp, "Luz dimmerizable") == 0) {
+        sprintf(out_char, "%d", out_luz);
+    }
+    cJSON_AddStringToObject(root, "salida", out_char);
 
     char *json_string = cJSON_PrintUnformatted(root);
     esp_mqtt_client_publish(client, TOPIC, json_string, 0, 0, 0);

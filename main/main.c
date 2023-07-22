@@ -31,26 +31,20 @@
 #include "../components/javi/mqtt_funcs.c"
 #include "../components/temp/temp.h"
 
+
 void app_main(void)
 {
-    TickType_t last_wake_time = xTaskGetTickCount();
+    
 	ESP_ERROR_CHECK(nvs_flash_init());
 	ESP_ERROR_CHECK(esp_netif_init());
-	
+	TickType_t last_wake_time = xTaskGetTickCount();
 	config_dis ();
-	/* pant_bienv (); */
+	pant_bienv ();
 	
 	pant_inicio ();
 	wifi_init_sta();
     mqtt_app_start();
 	rotary_encoder_init(&control);
-	ssd1306_clear_screen(&devd, false);
-	if (net_con==true){
-		pant_conok();
-	}
-	else{
-		pant_nocon();
-	}
 	vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(5000));
 	ssd1306_clear_screen(&devd, false);
 	rotary_encoder_add(&control);

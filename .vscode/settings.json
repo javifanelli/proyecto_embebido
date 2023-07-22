@@ -28,7 +28,8 @@
         "sntp_time.h": "c",
         "encoder.h": "c",
         "init.h": "c",
-        "semphr.h": "c"
+        "semphr.h": "c",
+        "variables.h": "c"
     },
     "idf.flashType": "UART",
     "idf.port": "/dev/ttyUSB0"

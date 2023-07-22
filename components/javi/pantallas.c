@@ -7,7 +7,6 @@
 #define RST_DIS	-1 // Puerto Reset del i2c
 #define HOR_RES	128 // Resolución horizontal
 #define VER_RES	64 // Resolución vertical
-#define	CONTRAST 0x0F // Contraste del display
 #define DELAY_BIENV 5000 // Delay de pantalla de bienvenida
 #define DELAY_CON 5000 // Delay de pantalla de conexión
 
@@ -30,13 +29,13 @@ void config_dis (void)
 	ESP_LOGI(tag, "Panel is 128x64");
 	ssd1306_init(&devd, HOR_RES, VER_RES);
 	ssd1306_clear_screen(&devd, false);
+	ssd1306_contrast(&devd, CONTRAST);
 }
 
 void pant_bienv (void)
 {
     //MENSAJE DE BIENVENIDA
 	ssd1306_clear_screen(&devd, false);
-	ssd1306_contrast(&devd, CONTRAST);
   	ssd1306_display_text(&devd, 0, "   Bienvenido", 13, false);
 	ssd1306_display_text(&devd, 1, "   Sistema de", 13, false);
 	ssd1306_display_text(&devd, 2, "    domotica", 12, false);
@@ -57,6 +56,7 @@ void pant_inicio ()
 }
 void pant_conok ()
 {
+	TickType_t last_wake_time = xTaskGetTickCount();
 	ssd1306_clear_screen(&devd, false);
 	vTaskDelay(100 / portTICK_PERIOD_MS);
 	ssd1306_display_text(&devd, 0, "IP address:", 11, false);
@@ -66,10 +66,13 @@ void pant_conok ()
 	ssd1306_display_text(&devd, 4, "Gateway IP:", 11, false);
 	ssd1306_display_text(&devd, 5, gw, strlen(gw), true);
 	ssd1306_display_text_with_value(&devd, 6, "Pot senal: ", 11, RSSI_CHAR, strlen(RSSI_CHAR), false);
+	vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(5000));
+	ssd1306_clear_screen(&devd, false);
 }
 
 void pant_nocon(void)
 {
+	TickType_t last_wake_time = xTaskGetTickCount();
 	ssd1306_clear_screen(&devd, false);
 	vTaskDelay(100 / portTICK_PERIOD_MS);
 	ssd1306_display_text(&devd, 0, "IP address:", 11, false);
@@ -80,14 +83,16 @@ void pant_nocon(void)
 	ssd1306_display_text(&devd, 5, "---.---.---.---", 15, true);
 	ssd1306_display_text(&devd, 6, "Pot senal: XX", 11, false);
 	ssd1306_display_text(&devd, 7, "Error conexion", 14, false);
+	vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(5000));
+	ssd1306_clear_screen(&devd, false);
 }
 
 void pant_main()
 {
-    ssd1306_display_text(&devd, 0, pant_time, strlen(pant_time), true);
+	ssd1306_display_text(&devd, 0, pant_time, strlen(pant_time), true);
     ssd1306_display_text_with_value(&devd, 1, "Temperatura: ", 13, temp_char, strlen(temp_char), false);
     ssd1306_display_text_with_value(&devd, 2, "Humedad %: ", 11, hum_char, strlen(hum_char), false);
-	if (out == false){
+	if (out_temp == false){
 		ssd1306_display_text(&devd, 3, "Salida: OFF", 11, false);
 	}
 	else {
@@ -95,9 +100,13 @@ void pant_main()
 	}
 	if (net_con == true){
 		ssd1306_display_text(&devd, 4, "Red: OK   ", 10, false);
+		// Encender el LED en color verde
+		
 	}
 	else if (net_con == false) {
 		ssd1306_display_text(&devd, 4, "Red: ERROR", 10, false);
+		// Encender el LED en color rojo
+		
 	}
 	if (mqtt_state == true){
 		ssd1306_display_text(&devd, 5, "Server: ONLINE ", 15, false);

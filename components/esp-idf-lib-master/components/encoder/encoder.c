@@ -98,14 +98,14 @@ inline static void read_encoder(rotary_encoder_t *re)
 
             re->btn_pressed_time_us += CONFIG_RE_INTERVAL_US;
 
-            if (re->btn_state == RE_BTN_PRESSED && re->btn_pressed_time_us >= CONFIG_RE_BTN_LONG_PRESS_TIME_US)
+            /* if (re->btn_state == RE_BTN_PRESSED && re->btn_pressed_time_us >= CONFIG_RE_BTN_LONG_PRESS_TIME_US)
             {
                 // Long press
                 re->btn_state = RE_BTN_LONG_PRESSED;
                 ev.type = RE_ET_BTN_LONG_PRESSED;
                 xQueueSendToBack(_queue, &ev, 0);
                 ESP_LOGI(TAG, "Button long pressed");
-            }
+            } */
         }
         else if (re->btn_state != RE_BTN_RELEASED)
         {
