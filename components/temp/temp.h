@@ -1,4 +1,4 @@
-#define dht_gpio 0 // Pin conectado al DHT11
+#define dht_gpio 10 // Pin conectado al DHT11
 #define refresh 5 // tiempo en segundos para refrescar medición en display
 
 static const dht_sensor_type_t sensor_type = DHT_TYPE_AM2301;
