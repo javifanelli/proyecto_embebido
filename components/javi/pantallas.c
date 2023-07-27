@@ -16,8 +16,10 @@ void config_dis (void);
 void pant_bienv (void);
 void pant_inicio (void);
 void pant_nocon(void);
-void pant_main ();
+void pant_main (void);
 void pant_no_sensor(void);
+void menu0 (void *pvParameter);
+void menu1 (void);
 
 void config_dis (void)
 {
@@ -52,42 +54,44 @@ void pant_bienv (void)
 void pant_inicio ()
 {
 	ssd1306_display_text(&devd, 0, "Iniciando el", 12, false);
-    ssd1306_display_text(&devd, 1, "sistema...", 10, false);
+    ssd1306_display_text(&devd, 1, "sistema", 7, false);
 }
 void pant_conok ()
 {
-	TickType_t last_wake_time = xTaskGetTickCount();
 	ssd1306_clear_screen(&devd, false);
-	vTaskDelay(100 / portTICK_PERIOD_MS);
 	ssd1306_display_text(&devd, 0, "IP address:", 11, false);
-	ssd1306_display_text(&devd, 1, ip, strlen(ip), true);
+	ssd1306_display_text(&devd, 1, ip, strlen(ip), false);
 	ssd1306_display_text(&devd, 2, "MAC address:", 12, false);
-	ssd1306_display_text(&devd, 3, mac_short, strlen(mac_short), true);
+	ssd1306_display_text(&devd, 3, mac_short, strlen(mac_short), false);
 	ssd1306_display_text(&devd, 4, "Gateway IP:", 11, false);
-	ssd1306_display_text(&devd, 5, gw, strlen(gw), true);
+	ssd1306_display_text(&devd, 5, gw, strlen(gw), false);
 	ssd1306_display_text_with_value(&devd, 6, "Pot senal: ", 11, RSSI_CHAR, strlen(RSSI_CHAR), false);
-	vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(5000));
-	ssd1306_clear_screen(&devd, false);
+	ssd1306_display_text(&devd, 7, "Menu anterior", 13, true);
+	if(btn_enc){
+		btn_enc=false;
+		xTaskCreate(menu0, "menu0", 4096, NULL, 5, NULL);
+	}
 }
 
 void pant_nocon(void)
 {
-	TickType_t last_wake_time = xTaskGetTickCount();
 	ssd1306_clear_screen(&devd, false);
 	vTaskDelay(100 / portTICK_PERIOD_MS);
 	ssd1306_display_text(&devd, 0, "IP address:", 11, false);
-	ssd1306_display_text(&devd, 1, "---.---.---.---", 15, true);
+	ssd1306_display_text(&devd, 1, "---.---.---.---", 15, false);
 	ssd1306_display_text(&devd, 2, "MAC address:", 12, false);
-	ssd1306_display_text(&devd, 3, "XXXXXXXX", 8,true);
+	ssd1306_display_text(&devd, 3, "XXXXXXXX", 8, false);
 	ssd1306_display_text(&devd, 4, "Gateway IP:", 11, false);
-	ssd1306_display_text(&devd, 5, "---.---.---.---", 15, true);
+	ssd1306_display_text(&devd, 5, "---.---.---.---", 15, false);
 	ssd1306_display_text(&devd, 6, "Pot senal: XX", 11, false);
-	ssd1306_display_text(&devd, 7, "Error conexion", 14, false);
-	vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(5000));
-	ssd1306_clear_screen(&devd, false);
+	ssd1306_display_text(&devd, 7, "Menu anterior", 13, true);
+	if(btn_enc){
+		btn_enc=false;
+		xTaskCreate(menu0, "menu0", 4096, NULL, 5, NULL);
+	}
 }
 
-void pant_main()
+void pant_main(void)
 {
 	ssd1306_display_text(&devd, 0, pant_time, strlen(pant_time), true);
     ssd1306_display_text_with_value(&devd, 1, "Temperatura: ", 13, temp_char, strlen(temp_char), false);
@@ -98,26 +102,27 @@ void pant_main()
 	else {
 		ssd1306_display_text(&devd, 3, "Salida: ON", 10, false);
 	}
-	if (net_con == true){
+	if (net_con){
 		ssd1306_display_text(&devd, 4, "Red: OK   ", 10, false);
 		// Encender el LED en color verde
 		
 	}
-	else if (net_con == false) {
+	else if (!net_con) {
 		ssd1306_display_text(&devd, 4, "Red: ERROR", 10, false);
 		// Encender el LED en color rojo
 		
 	}
-	if (mqtt_state == true){
+	if (mqtt_state){
 		ssd1306_display_text(&devd, 5, "Server: ONLINE ", 15, false);
 	}
-	else if (mqtt_state ==  false) {
+	else if (!mqtt_state) {
 		ssd1306_display_text(&devd, 5, "Server: OFFLINE", 15, false);
 	}
 	ssd1306_display_text(&devd, 7, "Menu", 4, true);
 	if (btn_enc){
-		pant_conok();
+		level=1;
 		btn_enc=false;
+		xTaskCreate(menu0, "menu0", 4096, NULL, 5, NULL);
 	}
 }
 
@@ -128,4 +133,75 @@ void pant_no_sensor(void)
 	ssd1306_display_text(&devd, 0, "No hay sensor", 13, false);
 	ssd1306_display_text(&devd, 1, "conectado", 9, false);
 	ssd1306_clear_screen(&devd, false);
+}
+
+void menu0 (void *pvParameter)
+{
+	ssd1306_clear_screen(&devd, false);
+	btn_enc=false;
+	level=1;
+	while(1){
+	if (inc_enc){
+		level++;
+		if (level>4){
+			level=1;
+		}
+	inc_enc=false;
+	}
+	if (dec_enc){
+		level--;
+		if (level<1){
+			level=4;
+		}
+	dec_enc=false;
+	}
+	if(level==1){
+		ssd1306_display_text(&devd, 0, "Estado", 6, true);
+		ssd1306_display_text(&devd, 1, "Actualizar hora", 15, false);
+		ssd1306_display_text(&devd, 2, "Modo", 4, false);
+		ssd1306_display_text(&devd, 3, "Pant. principal", 15, false);
+		if(btn_enc){
+			menu1();
+			vTaskDelete(NULL);
+		}
+	}
+	if(level==2){
+		ssd1306_display_text(&devd, 0, "Estado", 6, false);
+		ssd1306_display_text(&devd, 1, "Actualizar hora", 15, true);
+		ssd1306_display_text(&devd, 2, "Modo", 4, false);
+		ssd1306_display_text(&devd, 3, "Pant. principal", 15, false);
+	}
+	if(level==3){
+		ssd1306_display_text(&devd, 0, "Estado", 6, false);
+		ssd1306_display_text(&devd, 1, "Actualizar hora", 15, false);
+		ssd1306_display_text(&devd, 2, "Modo", 4, true);
+		ssd1306_display_text(&devd, 3, "Pant. principal", 15, false);
+	}
+	if(level==4){
+		ssd1306_display_text(&devd, 0, "Estado", 6, false);
+		ssd1306_display_text(&devd, 1, "Actualizar hora", 15, false);
+		ssd1306_display_text(&devd, 2, "Modo", 4, false);
+		ssd1306_display_text(&devd, 3, "Pant. principal", 15, true);
+		if (btn_enc){
+			btn_enc=false;
+			level=0;
+			pant_main();
+			vTaskDelete(NULL);
+		}
+	}}
+	ssd1306_clear_screen(&devd, false);
+	vTaskDelete(NULL);
+}
+
+void menu1 (void)
+{
+	ssd1306_clear_screen(&devd, false);
+	if (net_con){
+		btn_enc=false;
+		pant_conok();
+	}
+	if (!net_con){
+		btn_enc=false;
+		pant_nocon();
+	}
 }
