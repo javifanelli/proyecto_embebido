@@ -37,18 +37,25 @@ void app_main(void)
     
 	ESP_ERROR_CHECK(nvs_flash_init());
 	ESP_ERROR_CHECK(esp_netif_init());
-
-	config_dis ();
-	pant_bienv ();
-	
-	pant_inicio ();
+	gpio_pad_select_gpio(LED_R);
+    gpio_set_direction(LED_R, GPIO_MODE_OUTPUT);
+	gpio_pad_select_gpio(LED_G);
+    gpio_set_direction(LED_G, GPIO_MODE_OUTPUT);
+	gpio_pad_select_gpio(DIMMER);
+    gpio_set_direction(LED_R, GPIO_MODE_OUTPUT);
 	wifi_init_sta();
     mqtt_app_start();
 	
 	rotary_encoder_init(&control);
 	rotary_encoder_add(&control);
 	btn_enc=false;
-	ssd1306_clear_screen(&devd, false);
-	xTaskCreate(get_temp, "get_temp", 4096 * 8, NULL, 5, NULL);
+
+	while(1)
+	{
+		gpio_set_level(DIMMER, 1);
+		vTaskDelay(pdMS_TO_TICKS(1000));
+		gpio_set_level(DIMMER, 0);
+		vTaskDelay(pdMS_TO_TICKS(1000));
+	}
        
 }

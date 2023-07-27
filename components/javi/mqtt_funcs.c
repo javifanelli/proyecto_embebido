@@ -36,7 +36,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         msg_id = esp_mqtt_client_subscribe(client, TOPIC, 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-        ssd1306_clear_screen(&devd, false);
         break;
 
     case MQTT_EVENT_DISCONNECTED:
@@ -92,17 +91,7 @@ static void mqtt_app_start(void)
     /* The last argument may be used to pass data to the event handler, in this example mqtt_event_handler */
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(client);
-    ssd1306_display_text(&devd, 4, "Conectando al", 13, false);
-    ssd1306_display_text(&devd, 5, "server...", 9, false);
 
-    if(mqtt_state == false){
-        ssd1306_display_text(&devd, 5, "server... ERROR", 15, false);
-    }
-    else{
-        ssd1306_display_text(&devd, 5, "server... OK", 12, false);
-    }
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
-    ssd1306_clear_screen(&devd, false);
 }
 
 void mqtt_send_info(void)

@@ -51,8 +51,6 @@ static void event_handler(void* arg, esp_event_base_t event_base,
 
 void wifi_init_sta(void)
 {   
-    ssd1306_display_text(&devd, 2, "Conectando a la", 15, false);
-    ssd1306_display_text(&devd, 3, "red...", 6, false);
     s_wifi_event_group = xEventGroupCreate();
 
     ESP_ERROR_CHECK(esp_netif_init());
@@ -109,13 +107,14 @@ void wifi_init_sta(void)
      * happened. */
     if (bits & WIFI_CONNECTED_BIT) {
         ESP_LOGI(TAG, "connected to ap SSID:%s", EXAMPLE_ESP_WIFI_SSID);
-        ssd1306_display_text(&devd, 3, "red... OK", 9, false);
-        
+        gpio_set_level(LED_R, 0);
+        gpio_set_level(LED_G, 1);
         initialize_sntp();
         
     } else if (bits & WIFI_FAIL_BIT) {
         ESP_LOGI(TAG, "Failed to connect to SSID:%s", EXAMPLE_ESP_WIFI_SSID);
-        ssd1306_display_text(&devd, 3, "red... ERROR", 12, false);
+        gpio_set_level(LED_G, 0);
+        gpio_set_level(LED_R, 1);
     } else {
         ESP_LOGE(TAG, "UNEXPECTED EVENT");
     }

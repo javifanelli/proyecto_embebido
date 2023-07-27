@@ -1,7 +1,6 @@
-#define LED_R_PIN 0 // Pin GPIO para el LED rojo
-#define LED_G_PIN 2 // Pin GPIO para el LED verde
-#define LED_B_PIN 4 // Pin GPIO para el LED azul
-
+#define LED_R GPIO_NUM_15
+#define LED_G GPIO_NUM_4
+#define DIMMER GPIO_NUM_13
 
 wifi_ap_record_t ap_info;
 struct tm *timeinfo;
