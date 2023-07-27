@@ -185,8 +185,9 @@ void menu0 (void *pvParameter)
 		if (btn_enc){
 			btn_enc=false;
 			level=0;
-			pant_main();
 			vTaskDelete(NULL);
+			pant_main();
+			
 		}
 	}}
 	ssd1306_clear_screen(&devd, false);
