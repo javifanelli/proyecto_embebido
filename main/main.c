@@ -49,7 +49,8 @@ void app_main(void)
         ESP_LOGE(TAG, "No se pudo crear la cola.");
     }
 	wifi_init_sta();
-    mqtt_app_start();
+    if(net_con)
+		mqtt_app_start();
 	pwm_init();
 
 	ESP_ERROR_CHECK(rotary_encoder_init(_queue));
@@ -57,15 +58,36 @@ void app_main(void)
 	btn_enc=false;
 	set_pwm_duty(0);
 	
-	if(inc_enc==true){
-		inc_enc=false;
-		if(out<921)
-		out+=102;
-		ESP_LOGI(TAG,"Sube pwm");
+	while(1){
+		if(btn_enc && out>0){
+			btn_enc=false;
+			out=0;
+			/* set_pwm_duty(out); */
+			ESP_LOGI(TAG,"Apago luz");
+		}
+		if(btn_enc && out==0){
+			btn_enc=false;
+			out=510;
+			/* set_pwm_duty(out); */
+			ESP_LOGI(TAG,"Prendo luz al 50");
+		}
+		if(inc_enc==true){
+			inc_enc=false;
+			out+=102;
+			if(out>1020)
+				out=1020;
+			/* set_pwm_duty(out); */
+			ESP_LOGI(TAG,"Sube pwm");
+		}
+    	if(dec_enc==true){
+			dec_enc=false;
+			out-=102;
+			if(out<1)
+				out=0;
+			/* set_pwm_duty(out); */
+			ESP_LOGI(TAG,"Baja pwm");
+		}
+		set_pwm_duty(out);
 	}
-    if(dec_enc==true){
-		dec_enc=false;
-		if(out>102)
-		out-=102;
-	}
+
 }
