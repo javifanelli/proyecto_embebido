@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <math.h>
+#include <driver/ledc.h>
 #include "esp_wifi.h"
 #include "esp_system.h"
 #include "nvs_flash.h"
@@ -24,38 +25,47 @@
 #include "../components/javi/variables.h"
 #include "../components/esp-idf-lib-master/components/encoder/encoder.h"
 #include "../components/javi/init.h"
-#include "../components/esp-idf-lib-master/components/dht/dht.h"
-#include "../components/javi/pantallas.c"
 #include "../components/javi/sntp_time.h"
 #include "../components/javi/wifi_con.c"
 #include "../components/javi/mqtt_funcs.c"
-#include "../components/temp/temp.h"
 
+#define QUEUE_LENGTH 10 // Define la longitud máxima de la cola
+static QueueHandle_t _queue;
 
 void app_main(void)
 {
     
 	ESP_ERROR_CHECK(nvs_flash_init());
 	ESP_ERROR_CHECK(esp_netif_init());
+	
 	gpio_pad_select_gpio(LED_R);
     gpio_set_direction(LED_R, GPIO_MODE_OUTPUT);
 	gpio_pad_select_gpio(LED_G);
     gpio_set_direction(LED_G, GPIO_MODE_OUTPUT);
-	gpio_pad_select_gpio(DIMMER);
-    gpio_set_direction(LED_R, GPIO_MODE_OUTPUT);
+	_queue = xQueueCreate(QUEUE_LENGTH, sizeof(rotary_encoder_event_t));
+    
+	if (_queue == NULL)
+    {
+        ESP_LOGE(TAG, "No se pudo crear la cola.");
+    }
 	wifi_init_sta();
     mqtt_app_start();
-	
-	rotary_encoder_init(&control);
-	rotary_encoder_add(&control);
-	btn_enc=false;
+	pwm_init();
 
-	while(1)
-	{
-		gpio_set_level(DIMMER, 1);
-		vTaskDelay(pdMS_TO_TICKS(1000));
-		gpio_set_level(DIMMER, 0);
-		vTaskDelay(pdMS_TO_TICKS(1000));
+	ESP_ERROR_CHECK(rotary_encoder_init(_queue));
+	ESP_ERROR_CHECK(rotary_encoder_add(&control));
+	btn_enc=false;
+	set_pwm_duty(0);
+	
+	if(inc_enc==true){
+		inc_enc=false;
+		if(out<921)
+		out+=102;
+		ESP_LOGI(TAG,"Sube pwm");
 	}
-       
+    if(dec_enc==true){
+		dec_enc=false;
+		if(out>102)
+		out-=102;
+	}
 }

@@ -91,7 +91,7 @@ void wifi_init_sta(void)
     };
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
-    ESP_ERROR_CHECK(esp_wifi_start() );
+    ESP_ERROR_CHECK(esp_wifi_start());
 
     ESP_LOGI(TAG, "wifi_init_sta finished.");
 
@@ -109,12 +109,14 @@ void wifi_init_sta(void)
         ESP_LOGI(TAG, "connected to ap SSID:%s", EXAMPLE_ESP_WIFI_SSID);
         gpio_set_level(LED_R, 0);
         gpio_set_level(LED_G, 1);
+        net_con=true;
         initialize_sntp();
         
     } else if (bits & WIFI_FAIL_BIT) {
         ESP_LOGI(TAG, "Failed to connect to SSID:%s", EXAMPLE_ESP_WIFI_SSID);
         gpio_set_level(LED_G, 0);
         gpio_set_level(LED_R, 1);
+        net_con=false;
     } else {
         ESP_LOGE(TAG, "UNEXPECTED EVENT");
     }
@@ -122,13 +124,9 @@ void wifi_init_sta(void)
     /* The event will not be processed after unregister */
     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
-    vEventGroupDelete(s_wifi_event_group);
     esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
     sprintf(mac_short, "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    RSSI_CHAR[0] = 0;
     esp_wifi_sta_get_ap_info(&ap_info);
-    rssi = ap_info.rssi;
-    sprintf(RSSI_CHAR, "%d", rssi);
-
+    vEventGroupDelete(s_wifi_event_group);
 }

@@ -11,7 +11,7 @@ extern const uint8_t server_cert_pem_end[] asm("_binary_ca_pem_end");
 #define BROKER_URI "mqtts://192.168.0.70" // IP del broker (Raspberry Pi)
 #define TAG "sensor"
 
-static const char *ID ="1";
+static const char *ID ="2";
 static char *buffer_mqtt;
 static char TOPIC[50]="/home/temperatura/data"; // Topic de MQTT
 static esp_mqtt_client_handle_t client;
@@ -104,9 +104,9 @@ void mqtt_send_info(void)
     cJSON_AddStringToObject(root, "tipo", tipo_disp);
     strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M:%S", timeinfo);
     cJSON_AddStringToObject(root, "time", formatted_time);
-    cJSON_AddStringToObject(root, "valor", temp_char);
+    cJSON_AddStringToObject(root, "valor", out_char);
     if (strcmp(tipo_disp, "Temperatura") == 0) {
-        if (out_temp == false) {
+        if (out_char == 0) {
             sprintf(out_char, "0");
         }
         else {
@@ -115,7 +115,7 @@ void mqtt_send_info(void)
     }
 
     if (strcmp(tipo_disp, "Luz dimmerizable") == 0) {
-        sprintf(out_char, "%d", out_luz);
+        sprintf(out_char, "%d", out);
     }
     cJSON_AddStringToObject(root, "salida", out_char);
 
