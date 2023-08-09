@@ -44,6 +44,10 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 
+bool btn_enc;
+bool inc_enc;
+bool dec_enc;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -114,6 +118,8 @@ esp_err_t rotary_encoder_add(rotary_encoder_t *re);
  * @return `ESP_OK` on success
  */
 esp_err_t rotary_encoder_remove(rotary_encoder_t *re);
+
+
 
 #ifdef __cplusplus
 }

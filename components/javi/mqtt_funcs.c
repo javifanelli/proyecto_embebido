@@ -10,7 +10,9 @@ extern const uint8_t server_cert_pem_end[] asm("_binary_ca_pem_end");
 
 #define BROKER_URI "mqtts://192.168.0.70" // IP del broker (Raspberry Pi)
 #define TAG "sensor"
+#define MAX_CONNECTION_RETRIES 3
 
+static int connection_retries = 0;
 static const char *ID ="2";
 static char *buffer_mqtt;
 static char TOPIC[50]="/home/temperatura/data"; // Topic de MQTT
@@ -27,7 +29,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 {
     ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
     esp_mqtt_event_handle_t event = event_data;
-    /* esp_mqtt_client_handle_t  */client = event->client;
+    esp_mqtt_client_handle_t client = event->client;
     int msg_id;
 
     switch ((esp_mqtt_event_id_t)event_id) {
@@ -87,8 +89,7 @@ static void mqtt_app_start(void)
     };
     
     ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
-    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
-    /* The last argument may be used to pass data to the event handler, in this example mqtt_event_handler */
+    client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(client);
 
@@ -115,7 +116,7 @@ void mqtt_send_info(void)
     }
 
     if (strcmp(tipo_disp, "Luz dimmerizable") == 0) {
-        sprintf(out_char, "%d", out);
+        sprintf(out_char, "%d", out_dim);
     }
     cJSON_AddStringToObject(root, "salida", out_char);
 

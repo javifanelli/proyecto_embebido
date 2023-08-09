@@ -8,11 +8,9 @@ static char gw[16]; // IP del gateway de red
 char formatted_time[20]; // Fecha y hora en char para mandar por MQTT
 char pant_time[20]; // Fecha y hora en char para mostrar en display
 
-
 bool net_con = false; // Variable global para almacenar el estado de la conexión WiFi
 bool mqtt_state = false; // Variable para detectar el estado de conexión al servidor por MQTT
 
-int out = 0; // Variable para detectar el estado de la salida del dimmer
 char out_char[10];
 bool btn_enc = false; // Variable para detectar el botón pulsado
 bool inc_enc = false; // Variable para detectar el giro horario del encoder

@@ -40,7 +40,6 @@
 #include <freertos/semphr.h>
 #include <esp_timer.h>
 
-
 #define CONFIG_RE_MAX 1 // Cantidad máxima de encoders, en este caso uno solo
 #define CONFIG_RE_BTN_DEAD_TIME_US 3000 // Tiempo del antirrebote en useg
 #define CONFIG_RE_INTERVAL_US 500 // Frecuencia de lectura del encoder en useg
@@ -58,9 +57,8 @@ static rotary_encoder_t *encs[CONFIG_RE_MAX] = { 0 };
 static const int8_t valid_states[] = { 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0 };
 static SemaphoreHandle_t mutex;
 static QueueHandle_t _queue;
-extern bool btn_enc;
-extern bool inc_enc;
-extern bool dec_enc;
+
+
 #define GPIO_BIT(x) ((x) < 32 ? BIT(x) : ((uint64_t)(((uint64_t)1)<<(x))))
 #define CHECK(x) do { esp_err_t __; if ((__ = x) != ESP_OK) return __; } while (0)
 #define CHECK_ARG(VAL) do { if (!(VAL)) return ESP_ERR_INVALID_ARG; } while (0)
@@ -263,3 +261,4 @@ esp_err_t rotary_encoder_remove(rotary_encoder_t *re)
     xSemaphoreGive(mutex);
     return ESP_ERR_NOT_FOUND;
 }
+
