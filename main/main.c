@@ -31,6 +31,8 @@
 #include "../components/javi/mqtt_funcs.c"
 #include "../components/temp/temp.h"
 
+#define QUEUE_LENGTH 10 // Define la longitud máxima de la cola
+static QueueHandle_t _queue;
 
 void app_main(void)
 {
@@ -40,13 +42,15 @@ void app_main(void)
 
 	config_dis ();
 	pant_bienv ();
-	
+	_queue = xQueueCreate(QUEUE_LENGTH, sizeof(rotary_encoder_event_t));
 	pant_inicio ();
 	wifi_init_sta();
-    mqtt_app_start();
+    if(net_con)
+		mqtt_app_start();
 	
-	rotary_encoder_init(&control);
-	rotary_encoder_add(&control);
+	ESP_ERROR_CHECK(rotary_encoder_init(_queue));
+	ESP_ERROR_CHECK(rotary_encoder_add(&control));
+	
 	btn_enc=false;
 	ssd1306_clear_screen(&devd, false);
 	xTaskCreate(get_temp, "get_temp", 4096 * 8, NULL, 5, NULL);

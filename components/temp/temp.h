@@ -34,16 +34,19 @@ void get_temp(void *pvParameter)
                 mqtt_send_info();
                 }
             cont_mqtt++;
-            pant_main();
-            vTaskDelay(1000*refresh / portTICK_PERIOD_MS);
+            if(level==0)
+                pant_main();
+            xTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000*refresh));
+            /* vTaskDelay(1000*refresh / portTICK_PERIOD_MS); */
         } else {
             if (cont_temp > 5){
                 ESP_LOGE(TAG,"Could not read data from sensor\n");
 			    pant_no_sensor();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
+                xTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100));
+                /* vTaskDelay(100 / portTICK_PERIOD_MS); */
                 }
             cont_temp++;
-            vTaskDelay(100 * 1);
+            xTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100));
         }
 		
    }

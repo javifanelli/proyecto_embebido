@@ -110,7 +110,6 @@ void wifi_init_sta(void)
     if (bits & WIFI_CONNECTED_BIT) {
         ESP_LOGI(TAG, "connected to ap SSID:%s", EXAMPLE_ESP_WIFI_SSID);
         ssd1306_display_text(&devd, 3, "a la red... OK", 14, false);
-        
         initialize_sntp();
         
     } else if (bits & WIFI_FAIL_BIT) {

@@ -22,4 +22,5 @@ bool inc_enc = false; // Variable para detectar el giro horario del encoder
 bool dec_enc = false; // Variable para detectar el giro antihorario del encoder
 int level = 0; // Variable para detectar el nivel del menú
 char tipo_disp[50]="Temperatura";
+TickType_t xLastWakeTime;
 #endif
