@@ -1,4 +1,4 @@
-#define dht_gpio 10 // Pin conectado al DHT11
+#define dht_gpio 23 // Pin conectado al DHT11
 #define refresh 5 // tiempo en segundos para refrescar medición en display
 
 static const dht_sensor_type_t sensor_type = DHT_TYPE_AM2301;
@@ -16,7 +16,7 @@ void get_temp(void *pvParameter)
             ESP_LOGI(TAG,"Humidity: %d%% Temperature: %dC\n", humidity / 10, temperature / 10);
             if (!time_sinc_ok)
                 {
-                vTaskDelay(100 * 1);
+                vTaskDelay(100);
                 obtain_time();
                 }
             time_t now = time(NULL);

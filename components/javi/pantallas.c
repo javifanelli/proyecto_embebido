@@ -2,8 +2,8 @@
 #include "../ssd1306/font8x8_basic.h"
 #define tag "SH1106"
 
-#define SDA_DIS	5 // Puerto SDA del i2c
-#define SCL_DIS	6 // Puerto SCL del i2c
+#define SDA_DIS	19 // Puerto SDA del i2c
+#define SCL_DIS	18 // Puerto SCL del i2c
 #define RST_DIS	-1 // Puerto Reset del i2c
 #define HOR_RES	128 // Resolución horizontal
 #define VER_RES	64 // Resolución vertical
@@ -93,6 +93,7 @@ void pant_nocon(void)
 
 void pant_main(void)
 {
+	char sp_char[5];
 	ssd1306_display_text(&devd, 0, pant_time, strlen(pant_time), true);
     ssd1306_display_text_with_value(&devd, 1, "Temperatura: ", 13, temp_char, strlen(temp_char), false);
     ssd1306_display_text_with_value(&devd, 2, "Humedad %: ", 11, hum_char, strlen(hum_char), false);
@@ -102,21 +103,23 @@ void pant_main(void)
 	else {
 		ssd1306_display_text(&devd, 3, "Salida: ON", 10, false);
 	}
+	sprintf(sp_char,"%d", set_point);
+	ssd1306_display_text_with_value(&devd, 4, "Setpoint: ", 10, sp_char, 2, false);
 	if (net_con){
-		ssd1306_display_text(&devd, 4, "Red: OK   ", 10, false);
+		ssd1306_display_text(&devd, 5, "Red: OK   ", 10, false);
 		// Encender el LED en color verde
 		
 	}
 	else if (!net_con) {
-		ssd1306_display_text(&devd, 4, "Red: ERROR", 10, false);
+		ssd1306_display_text(&devd, 5, "Red: ERROR", 10, false);
 		// Encender el LED en color rojo
 		
 	}
 	if (mqtt_state){
-		ssd1306_display_text(&devd, 5, "Server: ONLINE ", 15, false);
+		ssd1306_display_text(&devd, 6, "Server: ONLINE ", 15, false);
 	}
 	else if (!mqtt_state) {
-		ssd1306_display_text(&devd, 5, "Server: OFFLINE", 15, false);
+		ssd1306_display_text(&devd, 6, "Server: OFFLINE", 15, false);
 	}
 	ssd1306_display_text(&devd, 7, "Menu", 4, true);
 	if (btn_enc){
